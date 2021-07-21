@@ -15,6 +15,10 @@ path = cfg.get('common','path')
 
 app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
 def load_image_into_numpy_array(data):
     return np.array(Image.open(BytesIO(data)))
 
