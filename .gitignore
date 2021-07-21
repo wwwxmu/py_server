@@ -1,0 +1,6 @@
+.DS_Store
+venv/
+log/
+config.ini
+images/
+__pycache__
