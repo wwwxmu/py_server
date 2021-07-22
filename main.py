@@ -10,6 +10,7 @@ import time
 import requests
 from pydantic import BaseModel
 from configparser import ConfigParser
+from fastapi.middleware.cors import CORSMiddleware
 cfg = ConfigParser()
 cfg.read('config.ini')
 local_path = cfg.get('common','local_path')
@@ -21,6 +22,14 @@ app = FastAPI()
 #def read_root():
 #    return {"message": "Hello World"}
 
+app.add_middleware(
+    CORSMiddleware,
+    # 设置允许的url， * 表示全部
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def load_image_into_numpy_array(data):
     return np.array(Image.open(BytesIO(data)))
@@ -75,7 +84,7 @@ async def dollar_stack_url(item: Item):
             return {"status": "Error", 'target_url': None, 'message': 'can not get image file from url'}
     else:
         return {"status": "Error", 'target_url': None, 'message': 'image response code:' +str(res)}
-    
+
 
 
 @app.post("/stack/")
