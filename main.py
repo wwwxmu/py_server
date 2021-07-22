@@ -74,7 +74,8 @@ class Item(BaseModel):
 async def dollar_stack_url(item: Item):
     if not item.image_url:
         return {"status": "Error", 'target_url': None, 'message': 'url is None!'}
-    res = requests.get(item.image_url)
+    res = requests.get(item.image_url.split('@')[0])
+    print(item.image_url.split('@')[0])
     if res.status_code == 200:
         try:
             src_im = np.array(Image.open(BytesIO(res.content)))
