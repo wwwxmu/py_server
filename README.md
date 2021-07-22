@@ -11,10 +11,11 @@ supervisorctl -c supervisor.conf stop py_server 关闭指定/所有 supervisor�
 Description=Process Monitoring and Control Daemon
 After=rc-local.service nss-user-lookup.target
 [Service]
+user=root
 Type=forking
-ExecStart=/home/py_server/venv/bin/supervisord -c /home/py_server/supervisor.conf ;开机启动时执行
-ExecStop=/home/py_server/venv/bin/supervisord shutdown
-ExecReload=/home/py_server/venv/bin/supervisord reload
+ExecStart=/home/py_server/venv/bin/supervisord -c /home/py_server/supervisor.conf
+ExecStop=/home/py_server/venv/bin/supervisord $OPTIONS shutdown
+ExecReload=/home/py_server/venv/bin/supervisord -c /home/py_server/supervisor.conf $OPTIONS reload
 killMode=process
 Restart=on-failure
 RestartSec=42s
