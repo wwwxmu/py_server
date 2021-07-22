@@ -16,7 +16,9 @@ cfg.read('config.ini')
 local_path = cfg.get('common','local_path')
 url_path = cfg.get('common','url_path')
 
-app = FastAPI()
+app = FastAPI(
+    root_path="/stack",    
+)
 
 #@app.get("/test/")
 #def read_root():
@@ -26,7 +28,7 @@ app.add_middleware(
     CORSMiddleware,
     # 设置允许的url， * 表示全部
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -70,11 +72,18 @@ class Item(BaseModel):
     height: Optional[int] = 1000
     stack_times: Optional[int] = 200
 
-@app.post("/stack_url/")
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36 Edg/91.0.864.37',
+    'Upgrade-Insecure-Requests': '1'
+}
+
+@app.post("/image_url/")
 async def dollar_stack_url(item: Item):
+    print(item)
+    print(type(item))
     if not item.image_url:
         return {"status": "Error", 'target_url': None, 'message': 'url is None!'}
-    res = requests.get(item.image_url.split('@')[0])
+    res = requests.get(item.image_url.split('@')[0], headers=headers)
     print(item.image_url.split('@')[0])
     if res.status_code == 200:
         try:
@@ -88,7 +97,7 @@ async def dollar_stack_url(item: Item):
 
 
 
-@app.post("/stack/")
+@app.post("/image_file/")
 async def dollar_stack(my_file: UploadFile = File(...), width: Optional[int] = 2000, height: Optional[int] = 1000, stack_times: Optional[int] = 200):
     src_im = load_image_into_numpy_array(await my_file.read())
     #src_im = Image.open(my_file)

@@ -11,18 +11,26 @@ supervisorctl -c supervisor.conf stop py_server 关闭指定/所有 supervisor�
 Description=Process Monitoring and Control Daemon
 After=rc-local.service nss-user-lookup.target
 [Service]
-user=root
+User=root
 Type=forking
 ExecStart=/home/py_server/venv/bin/supervisord -c /home/py_server/supervisor.conf
-ExecStop=/home/py_server/venv/bin/supervisord $OPTIONS shutdown
-ExecReload=/home/py_server/venv/bin/supervisord -c /home/py_server/supervisor.conf $OPTIONS reload
-killMode=process
+ExecStop=/home/py_server/venv/bin/supervisord  shutdown
+ExecReload=/home/py_server/venv/bin/supervisord -c /home/py_server/supervisor.conf  reload
 Restart=on-failure
 RestartSec=42s
 [Install]
 WantedBy=multi-user.target
 ```
+重载service
+sudo systemctl daemon-reload
 设置开机启动
 systemctl enable supervisord
 验证是否开机启动
 systemctl is-enabled supervisord
+
+nginx 配置图片目录
+location /images{
+      #处理静态文件夹中的静态文件
+      expires      30d;
+      alias /www/wwwroot/imgs.diystock.ai/images/;
+}
