@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 from io import BytesIO
 import time
+import requests
 from pydantic import BaseModel
 from configparser import ConfigParser
 cfg = ConfigParser()
@@ -24,10 +25,7 @@ app = FastAPI()
 def load_image_into_numpy_array(data):
     return np.array(Image.open(BytesIO(data)))
 
-@app.post("/stack/")
-async def dollar_stack(my_file: UploadFile = File(...), width: Optional[int] = 2000, height: Optional[int] = 1000, stack_times: Optional[int] = 200):
-    src_im = load_image_into_numpy_array(await my_file.read())
-    #src_im = Image.open(my_file)
+def stack_image(src_im, width, height, stack_times):
     src_im = Image.fromarray(src_im)
     size = src_im.size
     dst_im = Image.new("RGBA", (width ,height), "white" )
@@ -51,10 +49,40 @@ async def dollar_stack(my_file: UploadFile = File(...), width: Optional[int] = 2
         h = np.random.randint(-1/2 * height, height + height * 1/2)
         w = np.random.randint(-1/2 * width, width + width * 1/2)
         dst_im.paste( rot, ( h , w), rot )
-    file_name = my_file.filename.split('.')[0] + '_stack'+str(int(time.time())) + '.png'
+    file_name = 'stack'+str(int(time.time())) + '.png'
     output = local_path + file_name
     dst_im.save( output )
     target_url = url_path + file_name
+    return target_url
+
+class Item(BaseModel):
+    image_url: str
+    width: Optional[int] = 2000
+    height: Optional[int] = 1000
+    stack_times: Optional[int] = 200
+
+@app.post("/stack_url/")
+async def dollar_stack_url(item: Item):
+    if not item.image_url:
+        return {"status": "Error", 'target_url': None, 'message': 'url is None!'}
+    res = requests.get(item.image_url)
+    if res.status_code == 200:
+        try:
+            src_im = np.array(Image.open(BytesIO(res.content)))
+            target_url = stack_image(src_im, item.width, item.height, item.stack_times)
+            return {"status": "Success", 'target_url': target_url}
+        except:
+            return {"status": "Error", 'target_url': None, 'message': 'can not get image file from url'}
+    else:
+        return {"status": "Error", 'target_url': None, 'message': 'image response code:' +str(res)}
+    
+
+
+@app.post("/stack/")
+async def dollar_stack(my_file: UploadFile = File(...), width: Optional[int] = 2000, height: Optional[int] = 1000, stack_times: Optional[int] = 200):
+    src_im = load_image_into_numpy_array(await my_file.read())
+    #src_im = Image.open(my_file)
+    target_url = stack_image(src_im, width, height, stack_times)
     return {"status": "Success", 'target_url': target_url}
 
 
